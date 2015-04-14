@@ -110,6 +110,8 @@ eventBusAdapter.post(new ExampleEvent());
 subscriber.onDestroy();
 ```
 
+### Restricting publish / subscribe capabilities
+
 If you want to restrict your consumer classes' EventBus capabilities, use the following interfaces:
 
 - `EventBusPublisher`: the class will only be able to use the `post` method.
