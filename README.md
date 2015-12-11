@@ -56,9 +56,9 @@ and add the project declaration to your `pom.xml`:
 
 Currently the library has adapters for:
 
-- [GreenRobot EventBus](https://github.com/greenrobot/EventBus) (tested with version 2.4.0):
+- [GreenRobot EventBus](https://github.com/greenrobot/EventBus) (tested with version [2.4.0](http://search.maven.org/#artifactdetails%7Cde.greenrobot%7Ceventbus%7C2.4.0%7Cjar)):
 `GreenRobotEventBusAdapter`
-- [Google Guava EventBus](https://github.com/google/guava) (tested with version 18.0):
+- [Google Guava EventBus](https://github.com/google/guava) (tested with version [18.0](http://search.maven.org/#artifactdetails%7Ccom.google.guava%7Cguava%7C18.0%7Cbundle)):
 `GuavaEventBusAdapter`
 
 The main `EventBus` interface actually inherits from the `EventBusPublisher` and
