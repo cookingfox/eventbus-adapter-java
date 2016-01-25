@@ -1,8 +1,17 @@
 package com.cookingfox.eventbus.testable;
 
 /**
- * Created by Abel de Beer <abel@cookingfox.nl> on 25/01/16.
+ * Handle uncaught exceptions in subscribers.
+ * NOTE: It is bad practice to have your event subscribers throw exceptions - they should be handled
+ * right inside the method.
+ *
+ * @see TestableEventBus#setSubscriberUncaughtExceptionHandler(SubscriberUncaughtExceptionHandler)
  */
 public interface SubscriberUncaughtExceptionHandler {
-    void handleException(Exception e);
+
+    /**
+     * Handle the uncaught subscriber exception.
+     */
+    void handle(Exception e);
+
 }

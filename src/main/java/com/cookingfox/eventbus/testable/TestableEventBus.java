@@ -171,28 +171,20 @@ public class TestableEventBus implements EventBus {
     /**
      * Returns all posted events.
      */
-    public Collection<Object> getAllPostedEvents() {
-        final Collection<Object> events = new LinkedList<>();
-
-        for (PostedEvent posted : postedEvents) {
-            events.add(posted.event);
-        }
-
-        return events;
+    public Collection<PostedEvent> getAllPostedEvents() {
+        return postedEvents;
     }
 
     /**
      * Returns all posted events of a specified type.
      */
     @SuppressWarnings("unchecked")
-    public synchronized <T> Collection<T> getAllPostedEvents(Class<? extends T> eventType) {
-        final Collection<T> events = new LinkedList<>();
+    public synchronized Collection<PostedEvent> getAllPostedEvents(Class eventType) {
+        final Collection<PostedEvent> events = new LinkedList<>();
 
         for (PostedEvent posted : postedEvents) {
-            final Object event = posted.event;
-
-            if (eventType.isInstance(event)) {
-                events.add((T) event);
+            if (eventType.isInstance(posted.event)) {
+                events.add(posted);
             }
         }
 
@@ -202,20 +194,18 @@ public class TestableEventBus implements EventBus {
     /**
      * Returns the first posted event.
      */
-    public synchronized Object getFirstPostedEvent() {
-        return postedEvents.isEmpty() ? null : postedEvents.getFirst().event;
+    public synchronized PostedEvent getFirstPostedEvent() {
+        return postedEvents.isEmpty() ? null : postedEvents.getFirst();
     }
 
     /**
      * Returns the first posted event of a specified type.
      */
     @SuppressWarnings("unchecked")
-    public synchronized <T> T getFirstPostedEvent(Class<? extends T> eventType) {
+    public synchronized PostedEvent getFirstPostedEvent(Class eventType) {
         for (PostedEvent posted : postedEvents) {
-            final Object event = posted.event;
-
-            if (eventType.isInstance(event)) {
-                return (T) event;
+            if (eventType.isInstance(posted.event)) {
+                return posted;
             }
         }
 
@@ -225,24 +215,22 @@ public class TestableEventBus implements EventBus {
     /**
      * Returns the last posted event.
      */
-    public synchronized Object getLastPostedEvent() {
-        return postedEvents.isEmpty() ? null : postedEvents.getLast().event;
+    public synchronized PostedEvent getLastPostedEvent() {
+        return postedEvents.isEmpty() ? null : postedEvents.getLast();
     }
 
     /**
      * Returns the last posted event of a specified type.
      */
     @SuppressWarnings("unchecked")
-    public synchronized <T> T getLastPostedEvent(Class<? extends T> eventType) {
+    public synchronized PostedEvent getLastPostedEvent(Class eventType) {
         // create copy of posted events, so it can be reversed for traversing
         final LinkedList<PostedEvent> reversed = new LinkedList<>(postedEvents);
         Collections.reverse(reversed);
 
         for (PostedEvent posted : reversed) {
-            final Object event = posted.event;
-
-            if (eventType.isInstance(event)) {
-                return (T) event;
+            if (eventType.isInstance(posted.event)) {
+                return posted;
             }
         }
 
@@ -282,7 +270,7 @@ public class TestableEventBus implements EventBus {
                             "- use `setSubscriberUncaughtExceptionHandler` to handle uncaught " +
                             "subscriber exceptions", e);
                 } else {
-                    subscriberUncaughtExceptionHandler.handleException(e);
+                    subscriberUncaughtExceptionHandler.handle(e);
                 }
             }
         }
@@ -455,6 +443,9 @@ public class TestableEventBus implements EventBus {
     // INNER CLASSES
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * Wraps a subscriber with its event type and listener method.
+     */
     static class EventListener {
 
         public final Class eventClass;
@@ -464,18 +455,6 @@ public class TestableEventBus implements EventBus {
         public EventListener(Object subscriber, Method method, Class eventClass) {
             this.eventClass = eventClass;
             this.method = method;
-            this.subscriber = subscriber;
-        }
-
-    }
-
-    static class PostedEvent {
-
-        public final Object event;
-        public final Object subscriber;
-
-        public PostedEvent(Object event, Object subscriber) {
-            this.event = event;
             this.subscriber = subscriber;
         }
 

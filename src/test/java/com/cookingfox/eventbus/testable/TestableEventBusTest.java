@@ -120,7 +120,7 @@ public class TestableEventBusTest {
     public void getAllPostedEvents_noType_should_return_empty_list_for_none_posted() throws Exception {
         eventBus = createDefaultMethodNameInstance();
 
-        Collection<Object> result = eventBus.getAllPostedEvents();
+        Collection<PostedEvent> result = eventBus.getAllPostedEvents();
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
@@ -142,9 +142,9 @@ public class TestableEventBusTest {
             eventBus.post(event);
         }
 
-        Collection<Object> result = eventBus.getAllPostedEvents();
+        Collection<PostedEvent> result = eventBus.getAllPostedEvents();
 
-        assertEquals(events, result);
+        assertEquals(4, result.size());
     }
 
     //----------------------------------------------------------------------------------------------
@@ -159,7 +159,7 @@ public class TestableEventBusTest {
         eventBus.post(new MyOtherEvent());
         eventBus.post(new MyOtherEvent());
 
-        Collection<MyEvent> result = eventBus.getAllPostedEvents(MyEvent.class);
+        Collection<PostedEvent> result = eventBus.getAllPostedEvents(MyEvent.class);
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
@@ -171,18 +171,21 @@ public class TestableEventBusTest {
 
         eventBus.register(new MultipleListeners());
 
+        final MyEvent first = new MyEvent();
+        final MyEvent second = new MyEvent();
+
         final Collection<MyEvent> events = new LinkedList<>();
-        events.add(new MyEvent());
-        events.add(new MyEvent());
+        events.add(first);
+        events.add(second);
 
         for (Object event : events) {
             eventBus.post(event);
             eventBus.post(new MyOtherEvent());
         }
 
-        Collection<MyEvent> result = eventBus.getAllPostedEvents(MyEvent.class);
+        Collection<PostedEvent> result = eventBus.getAllPostedEvents(MyEvent.class);
 
-        assertEquals(events, result);
+        assertEquals(2, result.size());
     }
 
     //----------------------------------------------------------------------------------------------
@@ -193,7 +196,7 @@ public class TestableEventBusTest {
     public void getFirstPostedEvent_noType_should_return_null_if_no_posted_events() throws Exception {
         eventBus = createDefaultMethodNameInstance();
 
-        Object result = eventBus.getFirstPostedEvent();
+        PostedEvent result = eventBus.getFirstPostedEvent();
 
         assertNull(result);
     }
@@ -209,9 +212,9 @@ public class TestableEventBusTest {
         eventBus.post(new MyEvent());
         eventBus.post(new MyOtherEvent());
 
-        Object result = eventBus.getFirstPostedEvent();
+        PostedEvent result = eventBus.getFirstPostedEvent();
 
-        assertSame(first, result);
+        assertSame(first, result.event);
     }
 
     //----------------------------------------------------------------------------------------------
@@ -222,7 +225,7 @@ public class TestableEventBusTest {
     public void getFirstPostedEvent_withType_should_return_null_if_no_posted_events() throws Exception {
         eventBus = createDefaultMethodNameInstance();
 
-        Object result = eventBus.getFirstPostedEvent(MyEvent.class);
+        PostedEvent result = eventBus.getFirstPostedEvent(MyEvent.class);
 
         assertNull(result);
     }
@@ -240,9 +243,9 @@ public class TestableEventBusTest {
         eventBus.post(new MyOtherEvent());
         eventBus.post(new MyEvent());
 
-        MyEvent result = eventBus.getFirstPostedEvent(MyEvent.class);
+        PostedEvent result = eventBus.getFirstPostedEvent(MyEvent.class);
 
-        assertSame(first, result);
+        assertSame(first, result.event);
     }
 
     //----------------------------------------------------------------------------------------------
@@ -253,7 +256,7 @@ public class TestableEventBusTest {
     public void getLastPostedEvent_noType_should_return_null_if_no_posted_events() throws Exception {
         eventBus = createDefaultMethodNameInstance();
 
-        Object result = eventBus.getLastPostedEvent();
+        PostedEvent result = eventBus.getLastPostedEvent();
 
         assertNull(result);
     }
@@ -269,9 +272,9 @@ public class TestableEventBusTest {
         eventBus.post(new MyOtherEvent());
         eventBus.post(last);
 
-        Object result = eventBus.getLastPostedEvent();
+        PostedEvent result = eventBus.getLastPostedEvent();
 
-        assertSame(last, result);
+        assertSame(last, result.event);
     }
 
     //----------------------------------------------------------------------------------------------
@@ -282,7 +285,7 @@ public class TestableEventBusTest {
     public void getLastPostedEvent_withType_should_return_null_if_no_posted_events() throws Exception {
         eventBus = createDefaultMethodNameInstance();
 
-        MyEvent result = eventBus.getLastPostedEvent(MyEvent.class);
+        PostedEvent result = eventBus.getLastPostedEvent(MyEvent.class);
 
         assertNull(result);
     }
@@ -299,9 +302,9 @@ public class TestableEventBusTest {
         eventBus.post(last);
         eventBus.post(new MyOtherEvent());
 
-        MyEvent result = eventBus.getLastPostedEvent(MyEvent.class);
+        PostedEvent result = eventBus.getLastPostedEvent(MyEvent.class);
 
-        assertSame(last, result);
+        assertSame(last, result.event);
     }
 
     //----------------------------------------------------------------------------------------------
@@ -551,7 +554,7 @@ public class TestableEventBusTest {
     public void setSubscriberUncaughtExceptionHandler_should_throw_if_already_set() throws Exception {
         final SubscriberUncaughtExceptionHandler handler = new SubscriberUncaughtExceptionHandler() {
             @Override
-            public void handleException(Exception e) {
+            public void handle(Exception e) {
                 // no-op
             }
         };
@@ -569,7 +572,7 @@ public class TestableEventBusTest {
 
         eventBus.setSubscriberUncaughtExceptionHandler(new SubscriberUncaughtExceptionHandler() {
             @Override
-            public void handleException(Exception e) {
+            public void handle(Exception e) {
                 subscriberException.set(e);
             }
         });

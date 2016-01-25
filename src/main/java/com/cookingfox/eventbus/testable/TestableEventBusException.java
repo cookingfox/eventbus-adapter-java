@@ -1,9 +1,10 @@
 package com.cookingfox.eventbus.testable;
 
 /**
- * Created by Abel de Beer <abel@cookingfox.nl> on 25/01/16.
+ * Exception class specific to {@link TestableEventBus}.
  */
 public class TestableEventBusException extends RuntimeException {
+
     public TestableEventBusException() {
     }
 
@@ -22,4 +23,5 @@ public class TestableEventBusException extends RuntimeException {
     public TestableEventBusException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
+
 }
