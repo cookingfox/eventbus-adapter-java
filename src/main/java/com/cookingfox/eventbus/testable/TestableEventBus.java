@@ -16,7 +16,7 @@ public class TestableEventBus implements EventBus {
     // ENUMS
     //----------------------------------------------------------------------------------------------
 
-    enum MODE {
+    public enum MODE {
         ANNOTATION,
         METHOD_NAME
     }
@@ -223,14 +223,13 @@ public class TestableEventBus implements EventBus {
             }
 
             final Class eventClass = parameterTypes[0];
+            final Package eventPackage = eventClass.getPackage();
 
-            if (eventClass.getPackage().getName().startsWith("java.")) {
+            if (eventPackage != null && eventPackage.getName().startsWith("java.")) {
                 throw new TestableEventBusException("Event types from `java.*` package are not allowed");
             }
 
-            final EventListener listener = new EventListener(subscriber, method, eventClass);
-
-            listeners.add(listener);
+            listeners.add(new EventListener(subscriber, method, eventClass));
         }
 
         if (listeners.isEmpty()) {
