@@ -26,38 +26,37 @@ public class TestableEventBusTest {
     // TESTS: addAnnotations
     //----------------------------------------------------------------------------------------------
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = TestableEventBusException.class)
     public void addAnnotations_should_throw_if_null() throws Exception {
         Collection<Class<? extends Annotation>> collection = new ArrayList<>();
         collection.add(null);
 
-        eventBus = new TestableEventBus(TestableEventBus.MODE.ANNOTATION);
+        eventBus = createDefaultAnnotationInstance();
         eventBus.addAnnotations(collection);
     }
 
     @SuppressWarnings("unchecked")
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void addAnnotations_should_throw_if_not_annotation() throws Exception {
         Collection collection = new ArrayList<>();
         collection.add(String.class);
 
-        eventBus = new TestableEventBus(TestableEventBus.MODE.ANNOTATION);
+        eventBus = createDefaultAnnotationInstance();
         eventBus.addAnnotations(collection);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void addAnnotations_should_throw_if_incorrect_mode() throws Exception {
         Collection<Class<? extends Annotation>> collection = new ArrayList<>();
         collection.add(DefaultAnnotation.class);
 
-        eventBus = new TestableEventBus(TestableEventBus.MODE.METHOD_NAME);
+        eventBus = createDefaultMethodNameInstance();
         eventBus.addAnnotations(collection);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void addAnnotations_should_throw_if_empty() throws Exception {
         eventBus = createDefaultAnnotationInstance();
-
         eventBus.addAnnotations(new ArrayList<Class<? extends Annotation>>());
     }
 
@@ -65,38 +64,101 @@ public class TestableEventBusTest {
     // TESTS: addMethodNames
     //----------------------------------------------------------------------------------------------
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = TestableEventBusException.class)
     public void addMethodNames_should_throw_if_name_null() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
         eventBus.addMethodNames(Arrays.asList(new String[]{null}));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = TestableEventBusException.class)
     public void addMethodNames_should_throw_if_name_empty() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
         eventBus.addMethodNames(Arrays.asList(new String[]{""}));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void addMethodNames_should_throw_if_incorrect_mode() throws Exception {
-        eventBus = new TestableEventBus(TestableEventBus.MODE.ANNOTATION);
+        eventBus = createDefaultAnnotationInstance();
         eventBus.addMethodNames(Arrays.asList(new String[]{DEFAULT_METHOD_NAME}));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void addMethodNames_should_throw_if_empty() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
         eventBus.addMethodNames(new String[]{});
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // TESTS: getFirstPostedEvent
+    //----------------------------------------------------------------------------------------------
+
+    @Test
+    public void getFirstPostedEvent_should_return_null_if_no_posted_events() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        Object result = eventBus.getFirstPostedEvent();
+
+        assertNull(result);
+    }
+
+    @Test
+    public void getFirstPostedEvent_should_return_first_posted_event() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        final MyEvent first = new MyEvent();
+
+        eventBus.register(new MyEventListener());
+        eventBus.post(first);
+        eventBus.post(new MyEvent());
+        eventBus.post(new MyEvent());
+
+        Object result = eventBus.getFirstPostedEvent();
+
+        assertSame(first, result);
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // TESTS: getLastPostedEvent
+    //----------------------------------------------------------------------------------------------
+
+    @Test
+    public void getLastPostedEvent_should_return_null_if_no_posted_events() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        Object result = eventBus.getLastPostedEvent();
+
+        assertNull(result);
+    }
+
+    @Test
+    public void getLastPostedEvent_should_return_last_posted_event() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        final MyEvent last = new MyEvent();
+
+        eventBus.register(new MyEventListener());
+        eventBus.post(new MyEvent());
+        eventBus.post(new MyEvent());
+        eventBus.post(last);
+
+        Object result = eventBus.getLastPostedEvent();
+
+        assertSame(last, result);
     }
 
     //----------------------------------------------------------------------------------------------
     // TESTS: post
     //----------------------------------------------------------------------------------------------
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = TestableEventBusException.class)
     public void post_should_throw_if_event_null() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
         eventBus.post(null);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void post_should_throw_if_no_listeners_for_event() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
         eventBus.post(new MyEvent());
     }
 
@@ -143,7 +205,7 @@ public class TestableEventBusTest {
         assertSame(event, called.get());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void post_should_throw_if_no_subscriber_uncaught_exception_handler() throws Exception {
         eventBus = createDefaultMethodNameInstance();
         eventBus.register(new ThrowingListener());
@@ -154,30 +216,29 @@ public class TestableEventBusTest {
     // TESTS: register (method name mode)
     //----------------------------------------------------------------------------------------------
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = TestableEventBusException.class)
     public void register_methodName_should_throw_if_subject_null() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
         eventBus.register(null);
     }
 
-    @Test(expected = RuntimeException.class)
-    public void register_annotation_should_throw_if_no_added_method_names() throws Exception {
+    @Test(expected = TestableEventBusException.class)
+    public void register_methodName_should_throw_if_no_added_method_names() throws Exception {
         eventBus = new TestableEventBus(TestableEventBus.MODE.METHOD_NAME);
 
-        eventBus.register(new MyListener() {
-            @Override
-            public void onEvent(MyEvent event) {
-                // no-op
-            }
-        });
+        eventBus.register(new MyEventListener());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void register_methodName_should_throw_if_no_event_methods() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
         eventBus.register(new NoEventMethods());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void register_methodName_should_throw_if_listener_method_has_multiple_parameters() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
         eventBus.register(new MultipleParamListener() {
             @Override
             public void onEvent(MyEvent event, String otherParam) {
@@ -186,13 +247,17 @@ public class TestableEventBusTest {
         });
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void register_methodName_should_throw_if_listener_not_public() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
         eventBus.register(new PrivateEventListener());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void register_methodName_should_throw_if_listener_method_has_java_package_event_type() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
         eventBus.register(new JavaPackageEventType() {
             @Override
             public void onEvent(Collection event) {
@@ -201,15 +266,11 @@ public class TestableEventBusTest {
         });
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void register_methodName_should_throw_if_already_registered() throws Exception {
-        final MyListener listener = new MyListener() {
-            @Override
-            public void onEvent(MyEvent event) {
-                // no-op
-            }
-        };
+        final MyListener listener = new MyEventListener();
 
+        eventBus = createDefaultMethodNameInstance();
         eventBus.register(listener);
         eventBus.register(listener);
     }
@@ -218,27 +279,21 @@ public class TestableEventBusTest {
     // TESTS: register (annotation mode)
     //----------------------------------------------------------------------------------------------
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = TestableEventBusException.class)
     public void register_annotation_should_throw_if_subject_null() throws Exception {
         eventBus = createDefaultAnnotationInstance();
 
         eventBus.register(null);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void register_annotation_should_throw_if_no_added_annotations() throws Exception {
         eventBus = new TestableEventBus(TestableEventBus.MODE.ANNOTATION);
 
-        eventBus.register(new MyListener() {
-            @DefaultAnnotation
-            @Override
-            public void onEvent(MyEvent event) {
-                // no-op
-            }
-        });
+        eventBus.register(new MyEventListener());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void register_annotation_should_throw_if_no_listener_annotations() throws Exception {
         eventBus = createDefaultAnnotationInstance();
 
@@ -250,7 +305,7 @@ public class TestableEventBusTest {
         });
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void register_annotation_should_throw_if_listener_method_has_multiple_parameters() throws Exception {
         eventBus = createDefaultAnnotationInstance();
 
@@ -263,7 +318,7 @@ public class TestableEventBusTest {
         });
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void register_annotation_should_throw_if_listener_not_public() throws Exception {
         eventBus = createDefaultAnnotationInstance();
 
@@ -276,7 +331,7 @@ public class TestableEventBusTest {
         });
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void register_annotation_should_throw_if_listener_method_has_java_package_event_type() throws Exception {
         eventBus = createDefaultAnnotationInstance();
 
@@ -289,17 +344,11 @@ public class TestableEventBusTest {
         });
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void register_annotation_should_throw_if_already_registered() throws Exception {
         eventBus = createDefaultAnnotationInstance();
 
-        final MyListener listener = new MyListener() {
-            @DefaultAnnotation
-            @Override
-            public void onEvent(MyEvent event) {
-                // no-op
-            }
-        };
+        final MyListener listener = new MyEventListener();
 
         eventBus.register(listener);
         eventBus.register(listener);
@@ -309,17 +358,14 @@ public class TestableEventBusTest {
     // TESTS: setSubscriberUncaughtExceptionHandler
     //----------------------------------------------------------------------------------------------
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = TestableEventBusException.class)
     public void setSubscriberUncaughtExceptionHandler_should_throw_if_null() throws Exception {
         eventBus = createDefaultMethodNameInstance();
-
         eventBus.setSubscriberUncaughtExceptionHandler(null);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void setSubscriberUncaughtExceptionHandler_should_throw_if_already_set() throws Exception {
-        eventBus = createDefaultMethodNameInstance();
-
         final SubscriberUncaughtExceptionHandler handler = new SubscriberUncaughtExceptionHandler() {
             @Override
             public void handleException(Exception e) {
@@ -327,6 +373,7 @@ public class TestableEventBusTest {
             }
         };
 
+        eventBus = createDefaultMethodNameInstance();
         eventBus.setSubscriberUncaughtExceptionHandler(handler);
         eventBus.setSubscriberUncaughtExceptionHandler(handler);
     }
@@ -358,8 +405,9 @@ public class TestableEventBusTest {
     // TESTS: unregister
     //----------------------------------------------------------------------------------------------
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = TestableEventBusException.class)
     public void unregister_should_throw_if_not_registered() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
         eventBus.unregister(null);
     }
 
@@ -369,12 +417,7 @@ public class TestableEventBusTest {
 
         final AtomicReference<MyEvent> called = new AtomicReference<>();
 
-        final MyListener listener = new MyListener() {
-            @Override
-            public void onEvent(MyEvent event) {
-                called.set(event);
-            }
-        };
+        final MyListener listener = new MyEventListener();
 
         eventBus.register(listener);
         eventBus.unregister(listener);
@@ -478,6 +521,14 @@ public class TestableEventBusTest {
     static class ThrowingListener {
         public void onEvent(MyEvent event) throws Exception {
             throw new Exception(DEFAULT_EXCEPTION_MESSAGE);
+        }
+    }
+
+    static class MyEventListener implements MyListener {
+        @DefaultAnnotation
+        @Override
+        public void onEvent(MyEvent event) {
+            // no-op
         }
     }
 
