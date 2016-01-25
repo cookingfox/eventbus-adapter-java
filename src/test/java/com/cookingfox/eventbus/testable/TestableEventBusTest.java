@@ -89,11 +89,11 @@ public class TestableEventBusTest {
     }
 
     //----------------------------------------------------------------------------------------------
-    // TESTS: getFirstPostedEvent
+    // TESTS: getFirstPostedEvent (no type)
     //----------------------------------------------------------------------------------------------
 
     @Test
-    public void getFirstPostedEvent_should_return_null_if_no_posted_events() throws Exception {
+    public void getFirstPostedEvent_noType_should_return_null_if_no_posted_events() throws Exception {
         eventBus = createDefaultMethodNameInstance();
 
         Object result = eventBus.getFirstPostedEvent();
@@ -102,7 +102,7 @@ public class TestableEventBusTest {
     }
 
     @Test
-    public void getFirstPostedEvent_should_return_first_posted_event() throws Exception {
+    public void getFirstPostedEvent_noType_should_return_first_posted_event() throws Exception {
         eventBus = createDefaultMethodNameInstance();
 
         final MyEvent first = new MyEvent();
@@ -118,11 +118,42 @@ public class TestableEventBusTest {
     }
 
     //----------------------------------------------------------------------------------------------
-    // TESTS: getLastPostedEvent
+    // TESTS: getFirstPostedEvent (with type)
     //----------------------------------------------------------------------------------------------
 
     @Test
-    public void getLastPostedEvent_should_return_null_if_no_posted_events() throws Exception {
+    public void getFirstPostedEvent_withType_should_return_null_if_no_posted_events() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        Object result = eventBus.getFirstPostedEvent(MyEvent.class);
+
+        assertNull(result);
+    }
+
+    @Test
+    public void getFirstPostedEvent_withType_should_return_first_posted_event() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        final MyEvent first = new MyEvent();
+
+        eventBus.register(new MultipleListeners());
+
+        eventBus.post(new MyOtherEvent());
+        eventBus.post(first);
+        eventBus.post(new MyOtherEvent());
+        eventBus.post(new MyEvent());
+
+        MyEvent result = eventBus.getFirstPostedEvent(MyEvent.class);
+
+        assertSame(first, result);
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // TESTS: getLastPostedEvent (no type)
+    //----------------------------------------------------------------------------------------------
+
+    @Test
+    public void getLastPostedEvent_noType_should_return_null_if_no_posted_events() throws Exception {
         eventBus = createDefaultMethodNameInstance();
 
         Object result = eventBus.getLastPostedEvent();
@@ -131,17 +162,48 @@ public class TestableEventBusTest {
     }
 
     @Test
-    public void getLastPostedEvent_should_return_last_posted_event() throws Exception {
+    public void getLastPostedEvent_noType_should_return_last_posted_event() throws Exception {
         eventBus = createDefaultMethodNameInstance();
 
         final MyEvent last = new MyEvent();
 
-        eventBus.register(new MyEventListener());
+        eventBus.register(new MultipleListeners());
         eventBus.post(new MyEvent());
-        eventBus.post(new MyEvent());
+        eventBus.post(new MyOtherEvent());
         eventBus.post(last);
+        eventBus.post(new MyOtherEvent());
 
-        Object result = eventBus.getLastPostedEvent();
+        MyEvent result = eventBus.getLastPostedEvent(MyEvent.class);
+
+        assertSame(last, result);
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // TESTS: getLastPostedEvent (with type)
+    //----------------------------------------------------------------------------------------------
+
+    @Test
+    public void getLastPostedEvent_withType_should_return_null_if_no_posted_events() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        MyEvent result = eventBus.getLastPostedEvent(MyEvent.class);
+
+        assertNull(result);
+    }
+
+    @Test
+    public void getLastPostedEvent_withType_should_return_last_posted_event() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        final MyEvent last = new MyEvent();
+
+        eventBus.register(new MultipleListeners());
+        eventBus.post(new MyEvent());
+        eventBus.post(new MyOtherEvent());
+        eventBus.post(last);
+        eventBus.post(new MyOtherEvent());
+
+        MyEvent result = eventBus.getLastPostedEvent(MyEvent.class);
 
         assertSame(last, result);
     }
@@ -432,7 +494,7 @@ public class TestableEventBusTest {
 
         final AtomicInteger counter = new AtomicInteger(0);
 
-        MultipleListeners first = new MultipleListeners() {
+        final MultipleListeners first = new MultipleListeners() {
             @Override
             public void onEvent(MyEvent event) {
                 counter.incrementAndGet();
@@ -444,7 +506,7 @@ public class TestableEventBusTest {
             }
         };
 
-        MultipleListeners second = new MultipleListeners() {
+        final MultipleListeners second = new MultipleListeners() {
             @Override
             public void onEvent(MyEvent event) {
                 counter.incrementAndGet();
@@ -504,10 +566,12 @@ public class TestableEventBusTest {
     }
 
     @SuppressWarnings("unused")
-    interface MultipleListeners {
-        void onEvent(MyEvent event);
+    static class MultipleListeners {
+        public void onEvent(MyEvent event) {
+        }
 
-        void onEvent(MyOtherEvent event);
+        public void onEvent(MyOtherEvent event) {
+        }
     }
 
     @SuppressWarnings("unused")

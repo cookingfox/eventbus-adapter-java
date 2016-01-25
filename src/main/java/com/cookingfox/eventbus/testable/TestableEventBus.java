@@ -29,7 +29,7 @@ public class TestableEventBus implements EventBus {
     private final Set<String> listenerMethodNames = new LinkedHashSet<>();
     private final Map<Class, Set<EventListener>> listenersMap = new LinkedHashMap<>();
     private final MODE mode;
-    private final Deque<PostedEvent> postedEvents = new LinkedList<>();
+    private final LinkedList<PostedEvent> postedEvents = new LinkedList<>();
     private final Set<Object> registeredSubjects = new LinkedHashSet<>();
     private SubscriberUncaughtExceptionHandler subscriberUncaughtExceptionHandler;
 
@@ -98,8 +98,38 @@ public class TestableEventBus implements EventBus {
         return postedEvents.isEmpty() ? null : postedEvents.getFirst().event;
     }
 
+    @SuppressWarnings("unchecked")
+    public synchronized <T> T getFirstPostedEvent(Class<? extends T> eventType) {
+        for (PostedEvent posted : postedEvents) {
+            final Object event = posted.event;
+
+            if (eventType.isInstance(event)) {
+                return (T) event;
+            }
+        }
+
+        return null;
+    }
+
     public synchronized Object getLastPostedEvent() {
         return postedEvents.isEmpty() ? null : postedEvents.getLast().event;
+    }
+
+    @SuppressWarnings("unchecked")
+    public synchronized <T> T getLastPostedEvent(Class<? extends T> eventType) {
+        // create copy of posted events, so it can be reversed for traversing
+        final LinkedList<PostedEvent> reversed = new LinkedList<>(postedEvents);
+        Collections.reverse(reversed);
+
+        for (PostedEvent posted : reversed) {
+            final Object event = posted.event;
+
+            if (eventType.isInstance(event)) {
+                return (T) event;
+            }
+        }
+
+        return null;
     }
 
     @Override
