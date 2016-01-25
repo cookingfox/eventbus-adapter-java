@@ -14,7 +14,7 @@ public interface EventBusSubscriber {
     void register(Object subscriber);
 
     /**
-     * Unsubscribe for events that are posted on the EventBus.
+     * Unsubscribe from events that are posted on the EventBus.
      *
      * @param subscriber The object to unsubscribe.
      */

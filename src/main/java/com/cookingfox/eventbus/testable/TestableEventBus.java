@@ -8,7 +8,10 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
- * Created by Abel de Beer <abel@cookingfox.nl> on 25/01/16.
+ * Simple event bus implementation that makes testing event-based application flows easier.
+ * - Executes all events on the posting thread.
+ * - Supports both annotation- and name convention based subscriber methods.
+ * - Helper methods such as {@link #getFirstPostedEvent()} and {@link #getLastPostedEvent()}.
  */
 public class TestableEventBus implements EventBus {
 
@@ -16,27 +19,76 @@ public class TestableEventBus implements EventBus {
     // ENUMS
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * Defines whether to use annotation or name convention based subscriber methods.
+     */
     public enum MODE {
+
+        /**
+         * Use annotation based subscriber methods. Annotations need to be added using
+         * {@link #addAnnotation(Class)} or {@link #addAnnotations(Collection)}.
+         */
         ANNOTATION,
+
+        /**
+         * Use method name convention based subscriber methods. Name conventions need to be added
+         * using {@link #addMethodName(String)}, {@link #addMethodNames(String[])} or
+         * {@link #addMethodNames(Collection)}.
+         */
         METHOD_NAME
+
     }
 
     //----------------------------------------------------------------------------------------------
     // PROPERTIES
     //----------------------------------------------------------------------------------------------
 
-    private final Set<Class<? extends Annotation>> listenerAnnotations = new LinkedHashSet<>();
-    private final Set<String> listenerMethodNames = new LinkedHashSet<>();
-    private final Map<Class, Set<EventListener>> listenersMap = new LinkedHashMap<>();
+    /**
+     * {@link EventListener} VOs ordered by their event type.
+     */
+    private final Map<Class, Set<EventListener>> listenersByEventType = new LinkedHashMap<>();
+
+    /**
+     * The selected subscriber mode.
+     */
     private final MODE mode;
+
+    /**
+     * A log of all the posted events, which can be queried using helper methods.
+     */
     private final LinkedList<PostedEvent> postedEvents = new LinkedList<>();
+
+    /**
+     * All registered subjects, to avoid duplicate registration.
+     */
     private final Set<Object> registeredSubjects = new LinkedHashSet<>();
+
+    /**
+     * All added subscriber annotation classes.
+     *
+     * @see MODE#ANNOTATION
+     */
+    private final Set<Class<? extends Annotation>> subscriberAnnotations = new LinkedHashSet<>();
+
+    /**
+     * All added subscriber methods names.
+     *
+     * @see MODE#METHOD_NAME
+     */
+    private final Set<String> subscriberMethodNames = new LinkedHashSet<>();
+
+    /**
+     * Handler of uncaught exceptions in subscribers.
+     */
     private SubscriberUncaughtExceptionHandler subscriberUncaughtExceptionHandler;
 
     //----------------------------------------------------------------------------------------------
     // CONSTRUCTORS
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * @param mode Defines whether to use annotation or name convention based subscriber methods.
+     */
     public TestableEventBus(final MODE mode) {
         this.mode = mode;
     }
@@ -45,6 +97,9 @@ public class TestableEventBus implements EventBus {
     // PUBLIC METHODS
     //----------------------------------------------------------------------------------------------
 
+    /**
+     * Add an annotation that should be used for subscriber methods.
+     */
     public synchronized void addAnnotation(Class<? extends Annotation> annotation) {
         final ArrayList<Class<? extends Annotation>> annotations = new ArrayList<>();
         annotations.add(annotation);
@@ -52,6 +107,9 @@ public class TestableEventBus implements EventBus {
         addAnnotations(annotations);
     }
 
+    /**
+     * Add annotations that should be used for subscriber methods.
+     */
     public synchronized void addAnnotations(Collection<Class<? extends Annotation>> annotations) {
         if (mode != MODE.ANNOTATION) {
             throw new TestableEventBusException("Can not add annotations when the selected mode is " + mode);
@@ -67,17 +125,26 @@ public class TestableEventBus implements EventBus {
             }
         }
 
-        listenerAnnotations.addAll(annotations);
+        subscriberAnnotations.addAll(annotations);
     }
 
+    /**
+     * Add a method name (convention) that should be used for subscriber methods.
+     */
     public synchronized void addMethodName(String methodName) {
         addMethodNames(new String[]{methodName});
     }
 
+    /**
+     * Add method names (convention) that should be used for subscriber methods.
+     */
     public synchronized void addMethodNames(String[] methodNames) {
         addMethodNames(Arrays.asList(methodNames));
     }
 
+    /**
+     * Add method names (convention) that should be used for subscriber methods.
+     */
     public synchronized void addMethodNames(Collection<String> methodNames) {
         if (mode != MODE.METHOD_NAME) {
             throw new TestableEventBusException("Can not add method names when the selected mode is " + mode);
@@ -91,13 +158,57 @@ public class TestableEventBus implements EventBus {
             }
         }
 
-        listenerMethodNames.addAll(methodNames);
+        subscriberMethodNames.addAll(methodNames);
     }
 
+    /**
+     * Clear the log of posted events.
+     */
+    public void clearPostedEvents() {
+        postedEvents.clear();
+    }
+
+    /**
+     * Returns all posted events.
+     */
+    public Collection<Object> getAllPostedEvents() {
+        final Collection<Object> events = new LinkedList<>();
+
+        for (PostedEvent posted : postedEvents) {
+            events.add(posted.event);
+        }
+
+        return events;
+    }
+
+    /**
+     * Returns all posted events of a specified type.
+     */
+    @SuppressWarnings("unchecked")
+    public synchronized <T> Collection<T> getAllPostedEvents(Class<? extends T> eventType) {
+        final Collection<T> events = new LinkedList<>();
+
+        for (PostedEvent posted : postedEvents) {
+            final Object event = posted.event;
+
+            if (eventType.isInstance(event)) {
+                events.add((T) event);
+            }
+        }
+
+        return events;
+    }
+
+    /**
+     * Returns the first posted event.
+     */
     public synchronized Object getFirstPostedEvent() {
         return postedEvents.isEmpty() ? null : postedEvents.getFirst().event;
     }
 
+    /**
+     * Returns the first posted event of a specified type.
+     */
     @SuppressWarnings("unchecked")
     public synchronized <T> T getFirstPostedEvent(Class<? extends T> eventType) {
         for (PostedEvent posted : postedEvents) {
@@ -111,10 +222,16 @@ public class TestableEventBus implements EventBus {
         return null;
     }
 
+    /**
+     * Returns the last posted event.
+     */
     public synchronized Object getLastPostedEvent() {
         return postedEvents.isEmpty() ? null : postedEvents.getLast().event;
     }
 
+    /**
+     * Returns the last posted event of a specified type.
+     */
     @SuppressWarnings("unchecked")
     public synchronized <T> T getLastPostedEvent(Class<? extends T> eventType) {
         // create copy of posted events, so it can be reversed for traversing
@@ -132,6 +249,11 @@ public class TestableEventBus implements EventBus {
         return null;
     }
 
+    /**
+     * Post an event to all subscribers.
+     *
+     * @param event An event object.
+     */
     @Override
     public synchronized void post(final Object event) {
         if (event == null) {
@@ -139,7 +261,7 @@ public class TestableEventBus implements EventBus {
         }
 
         final Class eventClass = event.getClass();
-        final Set<EventListener> listeners = listenersMap.get(eventClass);
+        final Set<EventListener> listeners = listenersByEventType.get(eventClass);
 
         if (listeners == null) {
             throw new TestableEventBusException("No listeners for event type " + eventClass.getName());
@@ -149,13 +271,15 @@ public class TestableEventBus implements EventBus {
             final Object subscriber = listener.subscriber;
 
             try {
+                // invoke the subscriber method
                 listener.method.invoke(subscriber, event);
 
+                // log the posted event
                 postedEvents.add(new PostedEvent(event, subscriber));
             } catch (Exception e) {
                 if (subscriberUncaughtExceptionHandler == null) {
-                    throw new TestableEventBusException("Exception during invocation of listener - use " +
-                            "`setSubscriberUncaughtExceptionHandler` to handle uncaught " +
+                    throw new TestableEventBusException("Exception during invocation of listener " +
+                            "- use `setSubscriberUncaughtExceptionHandler` to handle uncaught " +
                             "subscriber exceptions", e);
                 } else {
                     subscriberUncaughtExceptionHandler.handleException(e);
@@ -164,15 +288,21 @@ public class TestableEventBus implements EventBus {
         }
     }
 
+    /**
+     * Register an event subscriber.
+     *
+     * @param subscriber The object to subscribe.
+     */
     @Override
     public synchronized void register(final Object subscriber) {
         if (subscriber == null) {
             throw new TestableEventBusException("Subject can not be null");
         }
 
-        if (mode == MODE.ANNOTATION && listenerAnnotations.isEmpty()) {
+        // mode has no added definition(s)? throw
+        if (mode == MODE.ANNOTATION && subscriberAnnotations.isEmpty()) {
             throw new TestableEventBusException("You should first add subscriber annotations");
-        } else if (mode == MODE.METHOD_NAME && listenerMethodNames.isEmpty()) {
+        } else if (mode == MODE.METHOD_NAME && subscriberMethodNames.isEmpty()) {
             throw new TestableEventBusException("You should first add subscriber method names");
         }
 
@@ -183,51 +313,14 @@ public class TestableEventBus implements EventBus {
         final Method[] subjectMethods = subscriber.getClass().getDeclaredMethods();
         final Set<EventListener> listeners = new LinkedHashSet<>();
 
+        // extract all subscriber's event listeners
         for (Method method : subjectMethods) {
-            final String name = method.getName();
-
-            switch (mode) {
-                case ANNOTATION:
-                    boolean hasAnnotation = false;
-
-                    for (Class<? extends Annotation> annotation : listenerAnnotations) {
-                        if (method.getAnnotation(annotation) != null) {
-                            hasAnnotation = true;
-                            break;
-                        }
-                    }
-
-                    if (!hasAnnotation) {
-                        continue;
-                    }
-                    break;
-
-                case METHOD_NAME:
-                    if (!listenerMethodNames.contains(name)) {
-                        continue;
-                    }
-                    break;
-
-                default:
-                    throw new TestableEventBusException("Unsupported mode: " + mode);
+            // no subscriber: skip
+            if (!isSubscriber(method)) {
+                continue;
             }
 
-            if (!Modifier.isPublic(method.getModifiers())) {
-                throw new TestableEventBusException("Event handler methods must be public");
-            }
-
-            final Class[] parameterTypes = method.getParameterTypes();
-
-            if (parameterTypes.length != 1) {
-                throw new TestableEventBusException("Event handler can only have one parameter: the event object");
-            }
-
-            final Class eventClass = parameterTypes[0];
-            final Package eventPackage = eventClass.getPackage();
-
-            if (eventPackage != null && eventPackage.getName().startsWith("java.")) {
-                throw new TestableEventBusException("Event types from `java.*` package are not allowed");
-            }
+            final Class eventClass = getValidEventType(method);
 
             listeners.add(new EventListener(subscriber, method, eventClass));
         }
@@ -236,20 +329,27 @@ public class TestableEventBus implements EventBus {
             throw new TestableEventBusException("No event handler methods in subscriber: " + subscriber);
         }
 
+        /**
+         * Store the event listeners by event type (more efficient calling in {@link #post}).
+         */
         for (EventListener listener : listeners) {
-            Set<EventListener> listenersForEvent = listenersMap.get(listener.eventClass);
+            Set<EventListener> listenersForEvent = listenersByEventType.get(listener.eventClass);
 
             if (listenersForEvent == null) {
                 listenersForEvent = new LinkedHashSet<>();
-                listenersForEvent.add(listener);
-                listenersMap.put(listener.eventClass, listenersForEvent);
+                listenersByEventType.put(listener.eventClass, listenersForEvent);
             }
+
+            listenersForEvent.add(listener);
         }
 
         // should be last
         registeredSubjects.add(subscriber);
     }
 
+    /**
+     * Set a handler for uncaught exceptions in event subscribers.
+     */
     public void setSubscriberUncaughtExceptionHandler(SubscriberUncaughtExceptionHandler handler) {
         if (handler == null) {
             throw new TestableEventBusException("Handler can not be null");
@@ -262,19 +362,93 @@ public class TestableEventBus implements EventBus {
         subscriberUncaughtExceptionHandler = handler;
     }
 
+    /**
+     * Unsubscribe from events that are posted on the EventBus.
+     *
+     * @param subscriber The object to unsubscribe.
+     */
     @Override
     public synchronized void unregister(final Object subscriber) {
         if (!registeredSubjects.contains(subscriber)) {
             throw new TestableEventBusException("Subscriber is not registered");
         }
 
-        for (Set<EventListener> listeners : listenersMap.values()) {
+        final Map<EventListener, Set<EventListener>> toRemove = new HashMap<>();
+
+        // collect the listeners that need to be removed
+        for (Set<EventListener> listeners : listenersByEventType.values()) {
             for (EventListener listener : listeners) {
                 if (listener.subscriber.equals(subscriber)) {
-                    listeners.remove(listener);
+                    toRemove.put(listener, listeners);
                 }
             }
         }
+
+        // actually remove the listeners
+        for (Map.Entry<EventListener, Set<EventListener>> entry : toRemove.entrySet()) {
+            entry.getValue().remove(entry.getKey());
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // PRIVATE METHODS
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * Validates the subscriber method and returns its event type.
+     */
+    private Class getValidEventType(final Method method) {
+        if (!Modifier.isPublic(method.getModifiers())) {
+            throw new TestableEventBusException("Event handler methods must be public");
+        }
+
+        final Class[] parameterTypes = method.getParameterTypes();
+
+        if (parameterTypes.length != 1) {
+            throw new TestableEventBusException("Event handler can only have one parameter: the event object");
+        }
+
+        final Class eventClass = parameterTypes[0];
+        final Package eventPackage = eventClass.getPackage();
+
+        if (eventPackage != null && eventPackage.getName().startsWith("java.")) {
+            throw new TestableEventBusException("Event types from `java.*` package are not allowed");
+        }
+
+        return eventClass;
+    }
+
+    /**
+     * Returns whether the method has subscribers.
+     */
+    private boolean isSubscriber(final Method method) {
+        switch (mode) {
+            case ANNOTATION:
+                boolean hasAnnotation = false;
+
+                for (Class<? extends Annotation> annotation : subscriberAnnotations) {
+                    if (method.getAnnotation(annotation) != null) {
+                        hasAnnotation = true;
+                        break;
+                    }
+                }
+
+                if (hasAnnotation) {
+                    return true;
+                }
+                break;
+
+            case METHOD_NAME:
+                if (subscriberMethodNames.contains(method.getName())) {
+                    return true;
+                }
+                break;
+
+            default:
+                throw new TestableEventBusException("Unsupported subscriber mode: " + mode);
+        }
+
+        return false;
     }
 
     //----------------------------------------------------------------------------------------------

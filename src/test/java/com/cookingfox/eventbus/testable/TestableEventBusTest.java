@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -89,6 +90,102 @@ public class TestableEventBusTest {
     }
 
     //----------------------------------------------------------------------------------------------
+    // TESTS: clearPostedEvents
+    //----------------------------------------------------------------------------------------------
+
+    @Test
+    public void clearPostedEvents_should_clear_all_posted_events() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        eventBus.register(new MultipleListeners());
+
+        eventBus.post(new MyEvent());
+        eventBus.post(new MyOtherEvent());
+        eventBus.post(new MyEvent());
+        eventBus.post(new MyOtherEvent());
+
+        eventBus.clearPostedEvents();
+
+        Collection result = eventBus.getAllPostedEvents();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // TESTS: getAllPostedEvents (no type)
+    //----------------------------------------------------------------------------------------------
+
+    @Test
+    public void getAllPostedEvents_noType_should_return_empty_list_for_none_posted() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        Collection<Object> result = eventBus.getAllPostedEvents();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void getAllPostedEvents_noType_should_return_all_events() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        eventBus.register(new MultipleListeners());
+
+        final Collection<Object> events = new LinkedList<>();
+        events.add(new MyEvent());
+        events.add(new MyOtherEvent());
+        events.add(new MyEvent());
+        events.add(new MyOtherEvent());
+
+        for (Object event : events) {
+            eventBus.post(event);
+        }
+
+        Collection<Object> result = eventBus.getAllPostedEvents();
+
+        assertEquals(events, result);
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // TESTS: getAllPostedEvents (no type)
+    //----------------------------------------------------------------------------------------------
+
+    @Test
+    public void getAllPostedEvents_withType_should_return_empty_list_for_none_posted() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        eventBus.register(new MultipleListeners());
+        eventBus.post(new MyOtherEvent());
+        eventBus.post(new MyOtherEvent());
+
+        Collection<MyEvent> result = eventBus.getAllPostedEvents(MyEvent.class);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void getAllPostedEvents_withType_should_return_all_events_with_type() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        eventBus.register(new MultipleListeners());
+
+        final Collection<MyEvent> events = new LinkedList<>();
+        events.add(new MyEvent());
+        events.add(new MyEvent());
+
+        for (Object event : events) {
+            eventBus.post(event);
+            eventBus.post(new MyOtherEvent());
+        }
+
+        Collection<MyEvent> result = eventBus.getAllPostedEvents(MyEvent.class);
+
+        assertEquals(events, result);
+    }
+
+    //----------------------------------------------------------------------------------------------
     // TESTS: getFirstPostedEvent (no type)
     //----------------------------------------------------------------------------------------------
 
@@ -107,10 +204,10 @@ public class TestableEventBusTest {
 
         final MyEvent first = new MyEvent();
 
-        eventBus.register(new MyEventListener());
+        eventBus.register(new MultipleListeners());
         eventBus.post(first);
         eventBus.post(new MyEvent());
-        eventBus.post(new MyEvent());
+        eventBus.post(new MyOtherEvent());
 
         Object result = eventBus.getFirstPostedEvent();
 
@@ -171,9 +268,8 @@ public class TestableEventBusTest {
         eventBus.post(new MyEvent());
         eventBus.post(new MyOtherEvent());
         eventBus.post(last);
-        eventBus.post(new MyOtherEvent());
 
-        MyEvent result = eventBus.getLastPostedEvent(MyEvent.class);
+        Object result = eventBus.getLastPostedEvent();
 
         assertSame(last, result);
     }
@@ -272,6 +368,31 @@ public class TestableEventBusTest {
         eventBus = createDefaultMethodNameInstance();
         eventBus.register(new ThrowingListener());
         eventBus.post(new MyEvent());
+    }
+
+    @Test
+    public void post_should_call_multiple_listeners_of_same_event_type() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        final AtomicInteger counter = new AtomicInteger(0);
+
+        eventBus.register(new MyListener() {
+            @Override
+            public void onEvent(MyEvent event) {
+                counter.incrementAndGet();
+            }
+        });
+
+        eventBus.register(new MyListener() {
+            @Override
+            public void onEvent(MyEvent event) {
+                counter.incrementAndGet();
+            }
+        });
+
+        eventBus.post(new MyEvent());
+
+        assertEquals(2, counter.get());
     }
 
     //----------------------------------------------------------------------------------------------
