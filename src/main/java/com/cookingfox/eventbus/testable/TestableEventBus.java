@@ -224,17 +224,41 @@ public class TestableEventBus implements EventBus {
      */
     @SuppressWarnings("unchecked")
     public synchronized PostedEvent getLastPostedEvent(Class eventType) {
-        // create copy of posted events, so it can be reversed for traversing
-        final LinkedList<PostedEvent> reversed = new LinkedList<>(postedEvents);
-        Collections.reverse(reversed);
+        final Iterator<PostedEvent> iterator = postedEvents.descendingIterator();
 
-        for (PostedEvent posted : reversed) {
+        while (iterator.hasNext()) {
+            final PostedEvent posted = iterator.next();
+
             if (eventType.isInstance(posted.event)) {
                 return posted;
             }
         }
 
         return null;
+    }
+
+    /**
+     * Returns whether events have been posted.
+     */
+    public synchronized boolean hasPostedEvents() {
+        return postedEvents.size() > 0;
+    }
+
+    /**
+     * Returns whether events have been posted of the specified type.
+     */
+    public synchronized boolean hasPostedEvents(Class eventType) {
+        if (postedEvents.size() < 1) {
+            return false;
+        }
+
+        for (PostedEvent posted : postedEvents) {
+            if (eventType.isInstance(posted.event)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

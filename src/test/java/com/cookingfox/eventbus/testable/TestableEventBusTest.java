@@ -308,6 +308,65 @@ public class TestableEventBusTest {
     }
 
     //----------------------------------------------------------------------------------------------
+    // TESTS: hasPostedEvents (no type)
+    //----------------------------------------------------------------------------------------------
+
+    @Test
+    public void hasPostedEvents_noType_should_return_false_for_no_posted_events() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        boolean result = eventBus.hasPostedEvents();
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void hasPostedEvents_noType_should_return_true_for_posted_events() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+        eventBus.register(new MyEventListener());
+        eventBus.post(new MyEvent());
+
+        boolean result = eventBus.hasPostedEvents();
+
+        assertTrue(result);
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // TESTS: hasPostedEvents (with type)
+    //----------------------------------------------------------------------------------------------
+
+    @Test
+    public void hasPostedEvents_withType_should_return_false_for_no_posted_events() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+
+        boolean result = eventBus.hasPostedEvents(MyEvent.class);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void hasPostedEvents_withType_should_return_false_for_no_posted_events_of_type() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+        eventBus.register(new MultipleListeners());
+        eventBus.post(new MyOtherEvent());
+
+        boolean result = eventBus.hasPostedEvents(MyEvent.class);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void hasPostedEvents_withType_should_return_true_for_posted_events() throws Exception {
+        eventBus = createDefaultMethodNameInstance();
+        eventBus.register(new MyEventListener());
+        eventBus.post(new MyEvent());
+
+        boolean result = eventBus.hasPostedEvents(MyEvent.class);
+
+        assertTrue(result);
+    }
+
+    //----------------------------------------------------------------------------------------------
     // TESTS: post
     //----------------------------------------------------------------------------------------------
 
