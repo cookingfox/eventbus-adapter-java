@@ -4,9 +4,12 @@ The EventBus Adapter wraps various EventBus implementations for Java and Android
 interface (`com.cookingfox.eventbus.EventBus`) to type your classes to, so that it's possible to
 change the implementation when required.
 
+[![Build Status](https://travis-ci.org/cookingfox/eventbus-adapter-java.svg?branch=master)](https://travis-ci.org/cookingfox/eventbus-adapter-java)
+
 ## Download
 
 [![Download](https://api.bintray.com/packages/cookingfox/maven/eventbus-adapter-java/images/download.svg) ](https://bintray.com/cookingfox/maven/eventbus-adapter-java/_latestVersion)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.cookingfox/eventbus-adapter-java/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.cookingfox/eventbus-adapter-java)
 
 The distribution is hosted on [Bintray](https://bintray.com/cookingfox/maven/eventbus-adapter-java/view).
 To include the package in your projects, you can add the jCenter repository.
@@ -25,7 +28,7 @@ and add the project to the `dependencies` block in your `build.gradle`:
 
 ```groovy
 dependencies {
-    compile 'com.cookingfox:eventbus-adapter-java:1.0.0'
+    compile 'com.cookingfox:eventbus-adapter-java:2.0.0'
 }
 ```
 
@@ -48,7 +51,7 @@ and add the project declaration to your `pom.xml`:
 <dependency>
     <groupId>com.cookingfox</groupId>
     <artifactId>eventbus-adapter-java</artifactId>
-    <version>1.0.0</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 
@@ -56,9 +59,10 @@ and add the project declaration to your `pom.xml`:
 
 Currently the library has adapters for:
 
-- [GreenRobot EventBus](https://github.com/greenrobot/EventBus) (tested with version [2.4.0](http://search.maven.org/#artifactdetails%7Cde.greenrobot%7Ceventbus%7C2.4.0%7Cjar)):
+- [GreenRobot EventBus](https://github.com/greenrobot/EventBus) (tested with version [2.4.1](http://search.maven.org/#artifactdetails%7Cde.greenrobot%7Ceventbus%7C2.4.1%7Cjar)
+and [3.0.0-beta1](http://search.maven.org/#artifactdetails%7Cde.greenrobot%7Ceventbus%7C3.0.0-beta1%7Cjar)):
 `GreenRobotEventBusAdapter`
-- [Google Guava EventBus](https://github.com/google/guava) (tested with version [18.0](http://search.maven.org/#artifactdetails%7Ccom.google.guava%7Cguava%7C18.0%7Cbundle)):
+- [Google Guava EventBus](https://github.com/google/guava) (tested with version [19.0](http://search.maven.org/#artifactdetails%7Ccom.google.guava%7Cguava%7C19.0%7Cbundle)):
 `GuavaEventBusAdapter`
 
 The main `EventBus` interface actually inherits from the `EventBusPublisher` and
@@ -72,7 +76,7 @@ Include in your project's dependencies:
 1. This wrapper library. (see "Download")
 2. The library you want to wrap. (see "Features")
 
-Example for the GreenRobot EventBus:
+Example for the GreenRobot EventBus version 2:
 
 ```java
 class ExampleEvent {}
