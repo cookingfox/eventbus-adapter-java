@@ -5,7 +5,7 @@
     <!-- Package info -->
     <groupId>com.cookingfox</groupId>
     <artifactId>eventbus-adapter-java</artifactId>
-    <version>2.0.1-SNAPSHOT</version>
+    <version>2.0.1</version>
     <name>EventBus Adapter for Java</name>
     <description>
         The EventBus Adapter wraps various EventBus implementations for Java and Android.
@@ -55,7 +55,7 @@
         <developerConnection>
             scm:git:ssh://git@github.com/cookingfox/eventbus-adapter-java.git
         </developerConnection>
-        <tag>HEAD</tag>
+        <tag>v2.0.1</tag>
     </scm>
 
     <!-- Distribution -->
