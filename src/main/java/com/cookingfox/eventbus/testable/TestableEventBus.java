@@ -169,26 +169,25 @@ public class TestableEventBus implements EventBus {
     }
 
     /**
-     * Returns all posted events.
+     * Returns the total number of posted events;
      */
-    public Collection<PostedEvent> getAllPostedEvents() {
-        return postedEvents;
+    public int countPostedEvents() {
+        return postedEvents.size();
     }
 
     /**
-     * Returns all posted events of a specified type.
+     * Returns the total number of posted events of a specified type.
      */
-    @SuppressWarnings("unchecked")
-    public synchronized Collection<PostedEvent> getAllPostedEvents(Class eventType) {
-        final Collection<PostedEvent> events = new LinkedList<>();
+    public int countPostedEvents(Class eventType) {
+        int count = 0;
 
         for (PostedEvent posted : postedEvents) {
             if (eventType.isInstance(posted.event)) {
-                events.add(posted);
+                count++;
             }
         }
 
-        return events;
+        return count;
     }
 
     /**
@@ -235,6 +234,29 @@ public class TestableEventBus implements EventBus {
         }
 
         return null;
+    }
+
+    /**
+     * Returns all posted events.
+     */
+    public Collection<PostedEvent> getPostedEvents() {
+        return postedEvents;
+    }
+
+    /**
+     * Returns all posted events of a specified type.
+     */
+    @SuppressWarnings("unchecked")
+    public synchronized Collection<PostedEvent> getPostedEvents(Class eventType) {
+        final Collection<PostedEvent> events = new LinkedList<>();
+
+        for (PostedEvent posted : postedEvents) {
+            if (eventType.isInstance(posted.event)) {
+                events.add(posted);
+            }
+        }
+
+        return events;
     }
 
     /**
