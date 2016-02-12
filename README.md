@@ -28,7 +28,7 @@ and add the project to the `dependencies` block in your `build.gradle`:
 
 ```groovy
 dependencies {
-    compile 'com.cookingfox:eventbus-adapter-java:2.0.1'
+    compile 'com.cookingfox:eventbus-adapter-java:2.0.2'
 }
 ```
 
@@ -51,7 +51,7 @@ and add the project declaration to your `pom.xml`:
 <dependency>
     <groupId>com.cookingfox</groupId>
     <artifactId>eventbus-adapter-java</artifactId>
-    <version>2.0.1</version>
+    <version>2.0.2</version>
 </dependency>
 ```
 
