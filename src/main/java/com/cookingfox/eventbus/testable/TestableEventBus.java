@@ -100,17 +100,19 @@ public class TestableEventBus implements EventBus {
     /**
      * Add an annotation that should be used for subscriber methods.
      */
-    public synchronized void addAnnotation(Class<? extends Annotation> annotation) {
+    public synchronized TestableEventBus addAnnotation(Class<? extends Annotation> annotation) {
         final ArrayList<Class<? extends Annotation>> annotations = new ArrayList<>();
         annotations.add(annotation);
 
         addAnnotations(annotations);
+
+        return this;
     }
 
     /**
      * Add annotations that should be used for subscriber methods.
      */
-    public synchronized void addAnnotations(Collection<Class<? extends Annotation>> annotations) {
+    public synchronized TestableEventBus addAnnotations(Collection<Class<? extends Annotation>> annotations) {
         if (mode != MODE.ANNOTATION) {
             throw new TestableEventBusException("Can not add annotations when the selected mode is " + mode);
         } else if (annotations.isEmpty()) {
@@ -126,26 +128,32 @@ public class TestableEventBus implements EventBus {
         }
 
         subscriberAnnotations.addAll(annotations);
+
+        return this;
     }
 
     /**
      * Add a method name (convention) that should be used for subscriber methods.
      */
-    public synchronized void addMethodName(String methodName) {
+    public synchronized TestableEventBus addMethodName(String methodName) {
         addMethodNames(new String[]{methodName});
+
+        return this;
     }
 
     /**
      * Add method names (convention) that should be used for subscriber methods.
      */
-    public synchronized void addMethodNames(String[] methodNames) {
+    public synchronized TestableEventBus addMethodNames(String[] methodNames) {
         addMethodNames(Arrays.asList(methodNames));
+
+        return this;
     }
 
     /**
      * Add method names (convention) that should be used for subscriber methods.
      */
-    public synchronized void addMethodNames(Collection<String> methodNames) {
+    public synchronized TestableEventBus addMethodNames(Collection<String> methodNames) {
         if (mode != MODE.METHOD_NAME) {
             throw new TestableEventBusException("Can not add method names when the selected mode is " + mode);
         } else if (methodNames.isEmpty()) {
@@ -159,13 +167,17 @@ public class TestableEventBus implements EventBus {
         }
 
         subscriberMethodNames.addAll(methodNames);
+
+        return this;
     }
 
     /**
      * Clear the log of posted events.
      */
-    public void clearPostedEvents() {
+    public TestableEventBus clearPostedEvents() {
         postedEvents.clear();
+
+        return this;
     }
 
     /**
@@ -201,7 +213,7 @@ public class TestableEventBus implements EventBus {
      * Returns the first posted event of a specified type.
      */
     @SuppressWarnings("unchecked")
-    public synchronized PostedEvent getFirstPostedEvent(Class eventType) {
+    public synchronized <T> PostedEvent<T> getFirstPostedEvent(Class<T> eventType) {
         for (PostedEvent posted : postedEvents) {
             if (eventType.isInstance(posted.event)) {
                 return posted;
@@ -222,7 +234,7 @@ public class TestableEventBus implements EventBus {
      * Returns the last posted event of a specified type.
      */
     @SuppressWarnings("unchecked")
-    public synchronized PostedEvent getLastPostedEvent(Class eventType) {
+    public synchronized <T> PostedEvent<T> getLastPostedEvent(Class<T> eventType) {
         final Iterator<PostedEvent> iterator = postedEvents.descendingIterator();
 
         while (iterator.hasNext()) {
@@ -247,8 +259,8 @@ public class TestableEventBus implements EventBus {
      * Returns all posted events of a specified type.
      */
     @SuppressWarnings("unchecked")
-    public synchronized Collection<PostedEvent> getPostedEvents(Class eventType) {
-        final Collection<PostedEvent> events = new LinkedList<>();
+    public synchronized <T> Collection<PostedEvent<T>> getPostedEvents(Class<T> eventType) {
+        final Collection<PostedEvent<T>> events = new LinkedList<>();
 
         for (PostedEvent posted : postedEvents) {
             if (eventType.isInstance(posted.event)) {

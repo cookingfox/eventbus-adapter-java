@@ -306,7 +306,7 @@ public class TestableEventBusTest {
         eventBus.post(new MyOtherEvent());
         eventBus.post(new MyOtherEvent());
 
-        Collection<PostedEvent> result = eventBus.getPostedEvents(MyEvent.class);
+        Collection<PostedEvent<MyEvent>> result = eventBus.getPostedEvents(MyEvent.class);
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
@@ -328,7 +328,7 @@ public class TestableEventBusTest {
             eventBus.post(new MyOtherEvent());
         }
 
-        Collection<PostedEvent> result = eventBus.getPostedEvents(MyEvent.class);
+        Collection<PostedEvent<MyEvent>> result = eventBus.getPostedEvents(MyEvent.class);
 
         assertEquals(2, result.size());
     }

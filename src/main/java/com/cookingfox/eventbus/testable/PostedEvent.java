@@ -3,17 +3,17 @@ package com.cookingfox.eventbus.testable;
 /**
  * Wraps a posted event and its subscriber. Useful for checking which subscribers accepted an event.
  */
-public class PostedEvent {
+public class PostedEvent<T> {
 
-    public final Object event;
+    public final T event;
     public final Object subscriber;
 
-    public PostedEvent(Object event, Object subscriber) {
+    public PostedEvent(T event, Object subscriber) {
         this.event = event;
         this.subscriber = subscriber;
     }
 
-    public Object getEvent() {
+    public T getEvent() {
         return event;
     }
 
