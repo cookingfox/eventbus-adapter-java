@@ -28,7 +28,7 @@ and add the project to the `dependencies` block in your `build.gradle`:
 
 ```groovy
 dependencies {
-    compile 'com.cookingfox:eventbus-adapter-java:2.0.2'
+    compile 'com.cookingfox:eventbus-adapter-java:3.0.0'
 }
 ```
 
@@ -51,7 +51,7 @@ and add the project declaration to your `pom.xml`:
 <dependency>
     <groupId>com.cookingfox</groupId>
     <artifactId>eventbus-adapter-java</artifactId>
-    <version>2.0.2</version>
+    <version>3.0.0</version>
 </dependency>
 ```
 
@@ -59,11 +59,19 @@ and add the project declaration to your `pom.xml`:
 
 Currently the library has adapters for:
 
-- [GreenRobot EventBus](https://github.com/greenrobot/EventBus) (tested with version [2.4.1](http://search.maven.org/#artifactdetails%7Cde.greenrobot%7Ceventbus%7C2.4.1%7Cjar)
-and [3.0.0-beta1](http://search.maven.org/#artifactdetails%7Cde.greenrobot%7Ceventbus%7C3.0.0-beta1%7Cjar)):
-`GreenRobotEventBusAdapter`
-- [Google Guava EventBus](https://github.com/google/guava) (tested with version [19.0](http://search.maven.org/#artifactdetails%7Ccom.google.guava%7Cguava%7C19.0%7Cbundle)):
+- [Google Guava EventBus](https://github.com/google/guava)
+(tested with version [19.0](http://search.maven.org/#artifactdetails%7Ccom.google.guava%7Cguava%7C19.0%7Cbundle)):
 `GuavaEventBusAdapter`
+
+- GreenRobot EventBus:
+
+    - [version 3](https://github.com/greenrobot/EventBus)
+    (tested with version [3.0.0](http://search.maven.org/#artifactdetails%7Corg.greenrobot%7Ceventbus%7C3.0.0%7Cjar)):
+    `GreenRobot3EventBusAdapter`
+
+    - [version 2](https://github.com/greenrobot/EventBus/tree/v2)
+    (tested with version [2.4.1](http://search.maven.org/#artifactdetails%7Cde.greenrobot%7Ceventbus%7C2.4.1%7Cjar)):
+    `GreenRobot2EventBusAdapter`
 
 The main `EventBus` interface actually inherits from the `EventBusPublisher` and
 `EventBusSubscriber` interfaces. This allows the user to restrict the available functionality of the
@@ -76,7 +84,7 @@ Include in your project's dependencies:
 1. This wrapper library. (see "Download")
 2. The library you want to wrap. (see "Features")
 
-Example for the GreenRobot EventBus version 2:
+Example for the GreenRobot EventBus version 3:
 
 ```java
 class ExampleEvent {}
@@ -102,8 +110,8 @@ class ExampleSubscriber {
 }
 
 // create real EventBus and adapter
-de.greenrobot.event.EventBus realEventBus = new de.greenrobot.event.EventBus();
-com.cookingfox.eventbus.EventBus eventBusAdapter = new GreenRobotEventBusAdapter(realEventBus);
+org.greenrobot.eventbus.EventBus realEventBus = new org.greenrobot.eventbus.EventBus();
+com.cookingfox.eventbus.EventBus eventBusAdapter = new GreenRobot3Adapter(realEventBus);
 
 // create and register subscriber
 ExampleSubscriber subscriber = new ExampleSubscriber(eventBusAdapter);
@@ -131,4 +139,4 @@ If you make an issue for it, we'll take a look at it! :)
 
 ## Copyright and license
 
-Code and documentation copyright 2015 Cooking Fox. Code released under the Apache 2.0 license.
+Code and documentation copyright 2017 Cooking Fox. Code released under the Apache 2.0 license.

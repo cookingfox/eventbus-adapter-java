@@ -3,16 +3,16 @@ package com.cookingfox.eventbus.adapter;
 import com.cookingfox.eventbus.EventBus;
 
 /**
- * Adapter for the GreenRobot EventBus. Don't forget to add the library to your dependencies.
+ * Adapter for the GreenRobot EventBus v2. Don't forget to add the library to your dependencies.
  *
  * @see com.cookingfox.eventbus.EventBus
  * @see de.greenrobot.event.EventBus
  */
-public class GreenRobotEventBusAdapter implements EventBus {
+public class GreenRobot2EventBusAdapter implements EventBus {
 
-    private de.greenrobot.event.EventBus eventBus;
+    private final de.greenrobot.event.EventBus eventBus;
 
-    public GreenRobotEventBusAdapter(de.greenrobot.event.EventBus eventBus) {
+    public GreenRobot2EventBusAdapter(de.greenrobot.event.EventBus eventBus) {
         this.eventBus = eventBus;
     }
 

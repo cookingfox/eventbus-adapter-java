@@ -80,7 +80,8 @@
         <maven-source-plugin.version>2.4</maven-source-plugin.version>
 
         <!-- Dependency versions -->
-        <greenrobot.version>2.4.1</greenrobot.version>
+        <greenrobot2.version>2.4.1</greenrobot2.version>
+        <greenrobot3.version>3.0.0</greenrobot3.version>
         <guava.version>19.0</guava.version>
         <junit.version>4.12</junit.version>
     </properties>
@@ -151,7 +152,14 @@
         <dependency>
             <groupId>de.greenrobot</groupId>
             <artifactId>eventbus</artifactId>
-            <version>${greenrobot.version}</version>
+            <version>${greenrobot2.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.greenrobot</groupId>
+            <artifactId>eventbus</artifactId>
+            <version>${greenrobot3.version}</version>
             <scope>provided</scope>
         </dependency>
 
